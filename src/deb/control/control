@@ -4,5 +4,5 @@ Architecture: all
 Maintainer: info@example.com
 Section: web
 Priority: optional
-Depends: default-jre-headless | default-jre
+Depends: graylog2-server | graylog2-radio
 Description: Graylog2 alarmcallback-jabber plugin.
