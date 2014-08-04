@@ -1,0 +1,7 @@
+Package: alarmcallback-jabber
+Version: 1.0-SNAPSHOT
+Architecture: all
+Maintainer: info@example.com
+Section: web
+Priority: optional
+Description: Graylog2 alarmcallback-jabber plugin.
