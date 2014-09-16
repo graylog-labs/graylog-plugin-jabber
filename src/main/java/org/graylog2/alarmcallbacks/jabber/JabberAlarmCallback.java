@@ -13,7 +13,13 @@ import org.graylog2.plugin.configuration.fields.ConfigurationField;
 import org.graylog2.plugin.configuration.fields.NumberField;
 import org.graylog2.plugin.configuration.fields.TextField;
 import org.graylog2.plugin.streams.Stream;
-import org.jivesoftware.smack.*;
+import org.jivesoftware.smack.Chat;
+import org.jivesoftware.smack.ChatManager;
+import org.jivesoftware.smack.ConnectionConfiguration;
+import org.jivesoftware.smack.SASLAuthentication;
+import org.jivesoftware.smack.SmackException;
+import org.jivesoftware.smack.XMPPConnection;
+import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,77 +27,85 @@ import org.slf4j.LoggerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
-import java.security.cert.X509Certificate;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.security.cert.X509Certificate;
 import java.util.Map;
 
-/**
- * @author Dennis Oelkers <dennis@torch.sh>
- */
+import static com.google.common.base.Strings.isNullOrEmpty;
+
 public class JabberAlarmCallback implements AlarmCallback {
-    private final Logger LOG = LoggerFactory.getLogger(JabberAlarmCallback.class);
+    private static final Logger LOG = LoggerFactory.getLogger(JabberAlarmCallback.class);
+
+    private static final String CK_HOSTNAME = "hostname";
+    private static final String CK_SERVICE_NAME = "service_name";
+    private static final String CK_PORT = "port";
+    private static final String CK_ACCEPT_SELFSIGNED = "accept_selfsigned";
+    private static final String CK_USERNAME = "username";
+    private static final String CK_PASSWORD = "password";
+    private static final String CK_REQUIRE_SECURITY = "require_security";
+    private static final String CK_RECIPIENT = "recipient";
+
     private XMPPConnection connection;
     private Configuration config;
 
-    public JabberAlarmCallback() {
-    }
-
     @Override
-    public void initialize(Configuration config) throws AlarmCallbackConfigurationException {
+    public void initialize(final Configuration config) throws AlarmCallbackConfigurationException {
         this.config = config;
     }
 
-    private XMPPConnection login(Configuration config) throws IOException, XMPPException, SmackException {
-        final String serviceName = (config.getString("service_name") == null || !config.getString("service_name").isEmpty()
-                ? config.getString("hostname")
-                : config.getString("service_name"));
+    private XMPPConnection login(final Configuration config) throws IOException, XMPPException, SmackException {
+        final String serviceName = isNullOrEmpty(config.getString(CK_SERVICE_NAME))
+                ? config.getString(CK_HOSTNAME) : config.getString(CK_SERVICE_NAME);
 
-        ConnectionConfiguration connectionConfiguration = new ConnectionConfiguration(
-                config.getString("hostname"),
-                (int)config.getInt("port"),
+        final ConnectionConfiguration connectionConfiguration = new ConnectionConfiguration(
+                config.getString(CK_HOSTNAME),
+                (int) config.getInt(CK_PORT),
                 serviceName
         );
 
         connectionConfiguration.setSendPresence(false);
 
-        if (config.getBoolean("accept_selfsigned"))
+        if (config.getBoolean(CK_ACCEPT_SELFSIGNED)) {
             connectionConfiguration.setCustomSSLContext(getTrustAllSSLContext());
+        }
 
-        connectionConfiguration.setSecurityMode(config.getBoolean("require_security") ?
+        connectionConfiguration.setSecurityMode(config.getBoolean(CK_REQUIRE_SECURITY) ?
                 ConnectionConfiguration.SecurityMode.required : ConnectionConfiguration.SecurityMode.enabled);
 
         LOG.debug("Supported SASL authentications: " + SASLAuthentication.getRegisterSASLMechanisms());
 
-        LOG.debug("require_security: " + config.getBoolean("require_security"));
+        LOG.debug("require_security: " + config.getBoolean(CK_REQUIRE_SECURITY));
         LOG.debug("Security mode: " + connectionConfiguration.getSecurityMode());
         LOG.debug("Socket factory: " + connectionConfiguration.getSocketFactory());
         LOG.debug("Keystore: " + connectionConfiguration.getKeystorePath());
         LOG.debug("Keystore type: " + connectionConfiguration.getKeystoreType());
 
-        XMPPConnection xmppConnection = new XMPPTCPConnection(connectionConfiguration);
+        final XMPPConnection xmppConnection = new XMPPTCPConnection(connectionConfiguration);
 
         xmppConnection.connect();
-        xmppConnection.login(config.getString("username"), config.getString("password"));
+        xmppConnection.login(config.getString(CK_USERNAME), config.getString(CK_PASSWORD));
 
         return xmppConnection;
     }
 
     private SSLContext getTrustAllSSLContext() {
-        TrustManager[] trustAllCerts = new TrustManager[] {
+        final TrustManager[] trustAllCerts = new TrustManager[]{
                 new X509TrustManager() {
                     public X509Certificate[] getAcceptedIssuers() {
                         return null;
                     }
+
                     public void checkClientTrusted(X509Certificate[] certs, String authType) {
                     }
+
                     public void checkServerTrusted(X509Certificate[] certs, String authType) {
                     }
                 }
         };
 
         try {
-            SSLContext sc = SSLContext.getInstance("TLS");
+            final SSLContext sc = SSLContext.getInstance("TLS");
             sc.init(null, trustAllCerts, new java.security.SecureRandom());
             return sc;
         } catch (GeneralSecurityException e) {
@@ -101,7 +115,7 @@ public class JabberAlarmCallback implements AlarmCallback {
     }
 
     @Override
-    public void call(Stream stream, AlertCondition.CheckResult result) throws AlarmCallbackException {
+    public void call(final Stream stream, final AlertCondition.CheckResult result) throws AlarmCallbackException {
         if (connection == null || !connection.isConnected() || !connection.isAuthenticated()) {
             try {
                 this.connection = login(config);
@@ -110,7 +124,7 @@ public class JabberAlarmCallback implements AlarmCallback {
             }
         }
 
-        Chat chat = ChatManager.getInstanceFor(connection).createChat(config.getString("recipient"), null);
+        final Chat chat = ChatManager.getInstanceFor(connection).createChat(config.getString(CK_RECIPIENT), null);
         try {
             chat.sendMessage(new JabberAlarmCallbackFormatter(stream, result).toString());
         } catch (XMPPException | SmackException.NotConnectedException e) {
@@ -120,50 +134,50 @@ public class JabberAlarmCallback implements AlarmCallback {
 
     @Override
     public ConfigurationRequest getRequestedConfiguration() {
-        ConfigurationRequest cr = new ConfigurationRequest();
+        final ConfigurationRequest cr = new ConfigurationRequest();
 
-        cr.addField(new TextField("recipient",
+        cr.addField(new TextField(CK_RECIPIENT,
                 "Recipient",
                 "user@server.org",
                 "Recipient of Jabber messages",
                 ConfigurationField.Optional.NOT_OPTIONAL));
 
-        cr.addField(new TextField("hostname",
+        cr.addField(new TextField(CK_HOSTNAME,
                 "Hostname",
                 "localhost",
                 "Hostname of Jabber server",
                 ConfigurationField.Optional.NOT_OPTIONAL));
 
-        cr.addField(new NumberField("port",
+        cr.addField(new NumberField(CK_PORT,
                 "Port",
                 5222,
                 "Port of Jabber server",
                 ConfigurationField.Optional.NOT_OPTIONAL));
 
-        cr.addField(new BooleanField("require_security",
+        cr.addField(new BooleanField(CK_REQUIRE_SECURITY,
                 "Require SSL/TLS?",
                 false,
                 "Force encryption for the server connection?"));
 
-        cr.addField(new BooleanField("accept_selfsigned",
+        cr.addField(new BooleanField(CK_ACCEPT_SELFSIGNED,
                 "Accept self-signed certificates?",
                 false,
                 "Do not enforce full validation of the certificate chain"));
 
-        cr.addField(new TextField("username",
+        cr.addField(new TextField(CK_USERNAME,
                 "Username",
                 "jabberuser",
                 "Username to connect with",
                 ConfigurationField.Optional.NOT_OPTIONAL));
 
-        cr.addField(new TextField("password",
+        cr.addField(new TextField(CK_PASSWORD,
                 "Password",
                 "",
                 "Password to connect with",
                 ConfigurationField.Optional.NOT_OPTIONAL,
                 TextField.Attribute.IS_PASSWORD));
 
-        cr.addField(new TextField("service_name",
+        cr.addField(new TextField(CK_SERVICE_NAME,
                 "Service Name",
                 "",
                 "The service name of the server (hostname used if not present)",
@@ -179,13 +193,12 @@ public class JabberAlarmCallback implements AlarmCallback {
 
     @Override
     public Map<String, Object> getAttributes() {
-        Map<String, Object> attributes = Maps.newHashMap();
-        attributes.putAll(config.getSource());
+        final Map<String, Object> attributes = Maps.newHashMap(config.getSource());
+        LOG.debug("Attributes: {}", attributes);
 
-        LOG.info("Attributes: {}", attributes);
-
-        if (attributes.containsKey("password"))
-            attributes.put("password", "******");
+        if (attributes.containsKey(CK_PASSWORD)) {
+            attributes.put(CK_PASSWORD, "******");
+        }
 
         return attributes;
     }

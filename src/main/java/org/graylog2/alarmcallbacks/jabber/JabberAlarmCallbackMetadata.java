@@ -3,12 +3,8 @@ package org.graylog2.alarmcallbacks.jabber;
 import org.graylog2.plugin.PluginMetaData;
 import org.graylog2.plugin.Version;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
 
-/**
- * @author Dennis Oelkers <dennis@torch.sh>
- */
 public class JabberAlarmCallbackMetadata implements PluginMetaData {
     @Override
     public String getUniqueId() {
@@ -26,29 +22,22 @@ public class JabberAlarmCallbackMetadata implements PluginMetaData {
     }
 
     @Override
-    public URL getURL() {
-        URL url = null;
-        try {
-            url = new URL("http://www.torch.sh");
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
-
-        return url;
+    public URI getURL() {
+        return URI.create("http://www.torch.sh");
     }
 
     @Override
     public Version getVersion() {
-        return new Version(1,0,0);
+        return new Version(1, 0, 0);
     }
 
     @Override
     public String getDescription() {
-        return "This plugin includes an alarm callback type that sends all stream alerts to a defined recipient using jabber.";
+        return "Alarm callback plugin that sends all stream alerts to a defined Jabber/XMPP recipient.";
     }
 
     @Override
     public Version getRequiredVersion() {
-        return new Version(0,21,0);
+        return new Version(0, 21, 0);
     }
 }

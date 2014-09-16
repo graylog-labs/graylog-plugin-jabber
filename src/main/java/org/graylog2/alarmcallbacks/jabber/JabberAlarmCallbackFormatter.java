@@ -3,35 +3,30 @@ package org.graylog2.alarmcallbacks.jabber;
 import org.graylog2.plugin.alarms.AlertCondition;
 import org.graylog2.plugin.streams.Stream;
 
-/**
- * @author Dennis Oelkers <dennis@torch.sh>
- */
 public class JabberAlarmCallbackFormatter {
     private final Stream stream;
     private final AlertCondition.CheckResult result;
 
-    private String formatted;
+    private transient String formatted;
 
-    public JabberAlarmCallbackFormatter(Stream stream, AlertCondition.CheckResult result) {
+    public JabberAlarmCallbackFormatter(final Stream stream, final AlertCondition.CheckResult result) {
         this.stream = stream;
         this.result = result;
     }
 
-    private StringBuilder formatAlarmNotification(Stream stream, AlertCondition.CheckResult result) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Graylog2 alert for stream <").append(stream.getTitle()).append(">\n\n")
-            .append("Date: " + result.getTriggeredAt() + "\n")
-            .append("Stream ID: " + stream.getId() + "\n")
-            .append("Stream title: " + stream.getTitle() + "\n")
-            .append("Triggered condition: " + result.getTriggeredCondition() + "\n");
-
-        return sb;
+    private String formatAlarmNotification(final Stream stream, final AlertCondition.CheckResult result) {
+        return "Graylog2 alert for stream <" + stream.getTitle() + ">\n\n"
+                + "Date: " + result.getTriggeredAt() + "\n"
+                + "Stream ID: " + stream.getId() + "\n"
+                + "Stream title: " + stream.getTitle() + "\n"
+                + "Triggered condition: " + result.getTriggeredCondition() + "\n";
     }
 
     @Override
     public String toString() {
-        if (formatted == null)
-            formatted = formatAlarmNotification(stream, result).toString();
+        if (formatted == null) {
+            formatted = formatAlarmNotification(stream, result);
+        }
 
         return formatted;
     }

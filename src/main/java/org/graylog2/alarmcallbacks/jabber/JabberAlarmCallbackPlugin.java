@@ -1,17 +1,14 @@
 package org.graylog2.alarmcallbacks.jabber;
 
-import com.google.common.collect.Lists;
 import org.graylog2.plugin.Plugin;
 import org.graylog2.plugin.PluginModule;
 
 import java.util.Collection;
+import java.util.Collections;
 
-/**
- * @author Dennis Oelkers <dennis@torch.sh>
- */
 public class JabberAlarmCallbackPlugin implements Plugin {
     @Override
     public Collection<PluginModule> modules() {
-        return Lists.newArrayList((PluginModule) new JabberAlarmCallbackModule());
+        return Collections.<PluginModule>singleton(new JabberAlarmCallbackModule());
     }
 }
