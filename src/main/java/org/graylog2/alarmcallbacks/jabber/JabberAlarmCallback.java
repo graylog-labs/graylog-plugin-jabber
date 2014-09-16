@@ -205,5 +205,29 @@ public class JabberAlarmCallback implements AlarmCallback {
 
     @Override
     public void checkConfiguration() throws ConfigurationException {
+        if (!config.stringIsSet(CK_RECIPIENT)) {
+            throw new ConfigurationException("Mandatory field " + CK_RECIPIENT + " is missing.");
+        }
+
+        if (!config.stringIsSet(CK_HOSTNAME)) {
+            throw new ConfigurationException("Mandatory field " + CK_RECIPIENT + " is missing.");
+        }
+
+        if (!config.intIsSet(CK_PORT)) {
+            throw new ConfigurationException("Mandatory field " + CK_PORT + " is missing.");
+        }
+
+        if (!config.stringIsSet(CK_USERNAME)) {
+            throw new ConfigurationException("Mandatory field " + CK_USERNAME + " is missing.");
+        }
+
+        if (!config.stringIsSet(CK_PASSWORD)) {
+            throw new ConfigurationException("Mandatory field " + CK_PASSWORD + " is missing.");
+        }
+
+        final long port = config.getInt(CK_PORT);
+        if (1 < port && port > 65535) {
+            throw new ConfigurationException(CK_PORT + " must be between 1 and 65535.");
+        }
     }
 }
