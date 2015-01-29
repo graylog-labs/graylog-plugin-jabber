@@ -21,7 +21,7 @@
         <maven.compiler.target>1.7</maven.compiler.target>
         <graylog2.plugin-dir>/usr/share/graylog2-server/plugin</graylog2.plugin-dir>
         <graylog2.version>1.0.0-rc.1</graylog2.version>
-        <smack.version>4.0.4</smack.version>
+        <smack.version>4.0.6</smack.version>
     </properties>
     <dependencies>
         <dependency>
