@@ -15,7 +15,7 @@ public class JabberAlarmCallbackFormatter {
     }
 
     private String formatAlarmNotification(final Stream stream, final AlertCondition.CheckResult result) {
-        return "Graylog2 alert for stream <" + stream.getTitle() + ">\n\n"
+        return "Graylog alert for stream <" + stream.getTitle() + ">\n\n"
                 + "Date: " + result.getTriggeredAt() + "\n"
                 + "Stream ID: " + stream.getId() + "\n"
                 + "Stream title: " + stream.getTitle() + "\n"
