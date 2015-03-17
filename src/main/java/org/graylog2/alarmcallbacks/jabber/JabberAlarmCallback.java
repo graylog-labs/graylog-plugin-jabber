@@ -60,7 +60,7 @@ public class JabberAlarmCallback implements AlarmCallback {
 
         final ConnectionConfiguration connectionConfiguration = new ConnectionConfiguration(
                 config.getString(CK_HOSTNAME),
-                (int) config.getInt(CK_PORT),
+                config.getInt(CK_PORT),
                 serviceName
         );
 
