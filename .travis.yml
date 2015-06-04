@@ -3,8 +3,8 @@ jdk:
   - oraclejdk7
   - oraclejdk8
 before_deploy:
-  - export RELEASE_PKG_FILE=$(ls target/*.jar)
-  - echo "Deploying $RELEASE_PKG_FILE to GitHub releases"
+  - export RELEASE_PKG_FILE=$(ls target/alarmcallback-*.jar)
+  - echo "Deploying release to GitHub releases"
 deploy:
   provider: releases
   api_key:
