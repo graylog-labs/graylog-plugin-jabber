@@ -13,14 +13,15 @@ import org.graylog2.plugin.configuration.fields.ConfigurationField;
 import org.graylog2.plugin.configuration.fields.NumberField;
 import org.graylog2.plugin.configuration.fields.TextField;
 import org.graylog2.plugin.streams.Stream;
-import org.jivesoftware.smack.Chat;
-import org.jivesoftware.smack.ChatManager;
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.SASLAuthentication;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
+import org.jivesoftware.smack.chat.Chat;
+import org.jivesoftware.smack.chat.ChatManager;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
+import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,30 +59,31 @@ public class JabberAlarmCallback implements AlarmCallback {
         final String serviceName = isNullOrEmpty(config.getString(CK_SERVICE_NAME))
                 ? config.getString(CK_HOSTNAME) : config.getString(CK_SERVICE_NAME);
 
-        final ConnectionConfiguration connectionConfiguration = new ConnectionConfiguration(
-                config.getString(CK_HOSTNAME),
-                config.getInt(CK_PORT),
-                serviceName
-        );
-
-        connectionConfiguration.setSendPresence(false);
+        final XMPPTCPConnectionConfiguration.Builder configBuilder = XMPPTCPConnectionConfiguration.builder()
+                .setHost(config.getString(CK_HOSTNAME))
+                .setPort(config.getInt(CK_PORT))
+                .setServiceName(serviceName)
+                .setSendPresence(false);
 
         if (config.getBoolean(CK_ACCEPT_SELFSIGNED)) {
-            connectionConfiguration.setCustomSSLContext(getTrustAllSSLContext());
+            configBuilder.setCustomSSLContext(getTrustAllSSLContext());
         }
 
-        connectionConfiguration.setSecurityMode(config.getBoolean(CK_REQUIRE_SECURITY) ?
-                ConnectionConfiguration.SecurityMode.required : ConnectionConfiguration.SecurityMode.enabled);
+        final boolean requireSecurity = config.getBoolean(CK_REQUIRE_SECURITY);
+        configBuilder.setSecurityMode(requireSecurity ?
+                ConnectionConfiguration.SecurityMode.required : ConnectionConfiguration.SecurityMode.ifpossible);
 
-        LOG.debug("Supported SASL authentications: " + SASLAuthentication.getRegisterSASLMechanisms());
+        final XMPPTCPConnectionConfiguration connectionConfiguration = configBuilder.build();
+        if(LOG.isDebugEnabled()) {
+            LOG.debug("Supported SASL authentications: {}", SASLAuthentication.getRegisterdSASLMechanisms());
+            LOG.debug("require_security: {}", requireSecurity);
+            LOG.debug("Security mode: {}", connectionConfiguration.getSecurityMode());
+            LOG.debug("Socket factory: {}", connectionConfiguration.getSocketFactory());
+            LOG.debug("Keystore: {}", connectionConfiguration.getKeystorePath());
+            LOG.debug("Keystore type: {}", connectionConfiguration.getKeystoreType());
+        }
 
-        LOG.debug("require_security: " + config.getBoolean(CK_REQUIRE_SECURITY));
-        LOG.debug("Security mode: " + connectionConfiguration.getSecurityMode());
-        LOG.debug("Socket factory: " + connectionConfiguration.getSocketFactory());
-        LOG.debug("Keystore: " + connectionConfiguration.getKeystorePath());
-        LOG.debug("Keystore type: " + connectionConfiguration.getKeystoreType());
-
-        final XMPPConnection xmppConnection = new XMPPTCPConnection(connectionConfiguration);
+        final XMPPTCPConnection xmppConnection = new XMPPTCPConnection(connectionConfiguration);
 
         xmppConnection.connect();
         xmppConnection.login(config.getString(CK_USERNAME), config.getString(CK_PASSWORD));
@@ -127,8 +129,8 @@ public class JabberAlarmCallback implements AlarmCallback {
         final Chat chat = ChatManager.getInstanceFor(connection).createChat(config.getString(CK_RECIPIENT), null);
         try {
             chat.sendMessage(new JabberAlarmCallbackFormatter(stream, result).toString());
-        } catch (XMPPException | SmackException.NotConnectedException e) {
-            throw new AlarmCallbackException("Unable to send message: ", e);
+        } catch (SmackException.NotConnectedException e) {
+            throw new AlarmCallbackException("Unable to send message", e);
         }
     }
 
