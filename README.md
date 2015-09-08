@@ -1,5 +1,5 @@
-graylog-alarmcallback-jabber
-============================
-[![Build Status](https://travis-ci.org/Graylog2/graylog2-alarmcallback-jabber.svg?branch=v1.0.2)](https://travis-ci.org/Graylog2/graylog2-alarmcallback-jabber)
+graylog-plugin-jabber
+=====================
+[![Build Status](https://travis-ci.org/Graylog2/graylog-plugin-jabber.svg?branch=master)](https://travis-ci.org/Graylog2/graylog-plugin-jabber)
 
-Jabber Alarmcallback Plugin for Graylog 1.0.2 or higher.
+XMPP/Jabber Alarmcallback Plugin for Graylog 1.1.0 or higher.
