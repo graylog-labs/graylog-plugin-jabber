@@ -111,7 +111,7 @@ public class JabberAlarmCallback implements AlarmCallback {
             sc.init(null, trustAllCerts, new java.security.SecureRandom());
             return sc;
         } catch (GeneralSecurityException e) {
-            LOG.error("Unable to initialize SSL context: {}", e);
+            LOG.error("Unable to initialize SSL context", e);
             return null;
         }
     }
@@ -122,7 +122,9 @@ public class JabberAlarmCallback implements AlarmCallback {
             try {
                 this.connection = login(config);
             } catch (XMPPException | SmackException | IOException e) {
-                throw new AlarmCallbackException("Unable to connect to jabber server: ", e);
+                final String serverString = String.format("%s:%d/%s",
+                        connection.getHost(), connection.getPort(), connection.getServiceName());
+                throw new AlarmCallbackException("Unable to connect to XMPP server " + serverString, e);
             }
         }
 
