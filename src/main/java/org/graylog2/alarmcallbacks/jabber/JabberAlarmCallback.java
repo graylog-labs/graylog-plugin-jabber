@@ -74,7 +74,7 @@ public class JabberAlarmCallback implements AlarmCallback {
                 ConnectionConfiguration.SecurityMode.required : ConnectionConfiguration.SecurityMode.ifpossible);
 
         final XMPPTCPConnectionConfiguration connectionConfiguration = configBuilder.build();
-        if(LOG.isDebugEnabled()) {
+        if (LOG.isDebugEnabled()) {
             LOG.debug("Supported SASL authentications: {}", SASLAuthentication.getRegisterdSASLMechanisms());
             LOG.debug("require_security: {}", requireSecurity);
             LOG.debug("Security mode: {}", connectionConfiguration.getSecurityMode());
@@ -122,8 +122,11 @@ public class JabberAlarmCallback implements AlarmCallback {
             try {
                 this.connection = login(config);
             } catch (XMPPException | SmackException | IOException e) {
-                final String serverString = String.format("%s:%d/%s",
-                        connection.getHost(), connection.getPort(), connection.getServiceName());
+                final String serverString = String.format("%s:%d (service name: %s)",
+                        config.getString(CK_HOSTNAME),
+                        config.getInt(CK_PORT),
+                        isNullOrEmpty(config.getString(CK_SERVICE_NAME)) ? config.getString(CK_HOSTNAME) : config.getString(CK_SERVICE_NAME)
+                );
                 throw new AlarmCallbackException("Unable to connect to XMPP server " + serverString, e);
             }
         }
