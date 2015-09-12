@@ -1,6 +1,7 @@
 package org.graylog2.alarmcallbacks.jabber;
 
 import com.google.common.collect.Maps;
+
 import org.graylog2.plugin.alarms.AlertCondition;
 import org.graylog2.plugin.alarms.callbacks.AlarmCallback;
 import org.graylog2.plugin.alarms.callbacks.AlarmCallbackConfigurationException;
@@ -22,15 +23,13 @@ import org.jivesoftware.smack.chat.Chat;
 import org.jivesoftware.smack.chat.ChatManager;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
+import org.jivesoftware.smack.util.TLSUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.security.cert.X509Certificate;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -55,7 +54,7 @@ public class JabberAlarmCallback implements AlarmCallback {
         this.config = config;
     }
 
-    private XMPPConnection login(final Configuration config) throws IOException, XMPPException, SmackException {
+    private XMPPConnection login(final Configuration config) throws IOException, XMPPException, SmackException, KeyManagementException, NoSuchAlgorithmException {
         final String serviceName = isNullOrEmpty(config.getString(CK_SERVICE_NAME))
                 ? config.getString(CK_HOSTNAME) : config.getString(CK_SERVICE_NAME);
 
@@ -66,7 +65,7 @@ public class JabberAlarmCallback implements AlarmCallback {
                 .setSendPresence(false);
 
         if (config.getBoolean(CK_ACCEPT_SELFSIGNED)) {
-            configBuilder.setCustomSSLContext(getTrustAllSSLContext());
+            TLSUtils.acceptAllCertificates(configBuilder);
         }
 
         final boolean requireSecurity = config.getBoolean(CK_REQUIRE_SECURITY);
@@ -91,37 +90,12 @@ public class JabberAlarmCallback implements AlarmCallback {
         return xmppConnection;
     }
 
-    private SSLContext getTrustAllSSLContext() {
-        final TrustManager[] trustAllCerts = new TrustManager[]{
-                new X509TrustManager() {
-                    public X509Certificate[] getAcceptedIssuers() {
-                        return null;
-                    }
-
-                    public void checkClientTrusted(X509Certificate[] certs, String authType) {
-                    }
-
-                    public void checkServerTrusted(X509Certificate[] certs, String authType) {
-                    }
-                }
-        };
-
-        try {
-            final SSLContext sc = SSLContext.getInstance("TLS");
-            sc.init(null, trustAllCerts, new java.security.SecureRandom());
-            return sc;
-        } catch (GeneralSecurityException e) {
-            LOG.error("Unable to initialize SSL context", e);
-            return null;
-        }
-    }
-
     @Override
     public void call(final Stream stream, final AlertCondition.CheckResult result) throws AlarmCallbackException {
         if (connection == null || !connection.isConnected() || !connection.isAuthenticated()) {
             try {
                 this.connection = login(config);
-            } catch (XMPPException | SmackException | IOException e) {
+            } catch (XMPPException | SmackException | IOException | KeyManagementException | NoSuchAlgorithmException e) {
                 final String serverString = String.format("%s:%d (service name: %s)",
                         config.getString(CK_HOSTNAME),
                         config.getInt(CK_PORT),
