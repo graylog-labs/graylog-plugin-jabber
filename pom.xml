@@ -46,11 +46,6 @@
             <artifactId>smack-tcp</artifactId>
             <version>${smack.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.igniterealtime.smack</groupId>
-            <artifactId>smack-im</artifactId>
-            <version>${smack.version}</version>
-        </dependency>
     </dependencies>
     <build>
         <plugins>

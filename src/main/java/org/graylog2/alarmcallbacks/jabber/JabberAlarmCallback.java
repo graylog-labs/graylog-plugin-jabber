@@ -19,8 +19,7 @@ import org.jivesoftware.smack.SASLAuthentication;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
-import org.jivesoftware.smack.chat.Chat;
-import org.jivesoftware.smack.chat.ChatManager;
+import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.jivesoftware.smack.util.TLSUtils;
@@ -105,9 +104,11 @@ public class JabberAlarmCallback implements AlarmCallback {
             }
         }
 
-        final Chat chat = ChatManager.getInstanceFor(connection).createChat(config.getString(CK_RECIPIENT), null);
+        String messageRecipient = config.getString(CK_RECIPIENT);
+        String messageBody = new JabberAlarmCallbackFormatter(stream, result).toString();
+        Message message = new Message(messageRecipient, messageBody);
         try {
-            chat.sendMessage(new JabberAlarmCallbackFormatter(stream, result).toString());
+            connection.sendStanza(message);
         } catch (SmackException.NotConnectedException e) {
             throw new AlarmCallbackException("Unable to send message", e);
         }
