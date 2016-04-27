@@ -26,7 +26,7 @@ public class JabberAlarmCallbackMetadata implements PluginMetaData {
 
     @Override
     public URI getURL() {
-        return URI.create("http://www.graylog.org");
+        return URI.create("https://www.graylog.org");
     }
 
     @Override
@@ -41,7 +41,7 @@ public class JabberAlarmCallbackMetadata implements PluginMetaData {
 
     @Override
     public Version getRequiredVersion() {
-        return new Version(1, 1, 0);
+        return new Version(2, 0, 0);
     }
 
     @Override
