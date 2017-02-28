@@ -2,6 +2,8 @@ XMPP / Jabber Plugin for Graylog
 ================================
 
 [![Build Status](https://travis-ci.org/Graylog2/graylog-plugin-jabber.svg?branch=master)](https://travis-ci.org/Graylog2/graylog-plugin-jabber)
+[![Github Downloads](https://img.shields.io/github/downloads/Graylog2/graylog-plugin-jabber/total.svg)](https://github.com/Graylog2/graylog-plugin-jabber/releases)
+[![GitHub Release](https://img.shields.io/github/release/Graylog2/graylog-plugin-jabber.svg)](https://github.com/Graylog2/graylog-plugin-jabber/releases)
 
 XMPP/Jabber Alarmcallback Plugin for Graylog.
 
