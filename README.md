@@ -5,7 +5,7 @@ XMPP / Jabber Plugin for Graylog
 
 XMPP/Jabber Alarmcallback Plugin for Graylog.
 
-**Required Graylog version:** 2.0.0 and later
+**Required Graylog version:** 2.2.0 and later
 
 ## Installation
 
@@ -35,3 +35,11 @@ $ mvn release:perform
 ```
 
 This sets the version numbers, creates a tag and pushes to GitHub. Travis CI will build the release artifacts and upload to GitHub automatically.
+
+## License
+
+Copyright (c) 2014-2017 Graylog, Inc.
+
+This library is licensed under the GNU General Public License, Version 3.0.
+
+See https://www.gnu.org/licenses/gpl-3.0.html or the LICENSE.txt file in this repository for the full license text.
