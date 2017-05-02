@@ -95,15 +95,13 @@ public class JabberAlarmCallback implements AlarmCallback {
         if (connection == null || !connection.isConnected() || !connection.isAuthenticated()) {
             try {
                 this.connection = login(config);
-            } catch (XMPPException | SmackException | IOException | KeyManagementException | NoSuchAlgorithmException e) {
+            } catch (XMPPException | SmackException | IOException | KeyManagementException | NoSuchAlgorithmException | InterruptedException e) {
                 final String serverString = String.format("%s:%d (service name: %s)",
                         config.getString(CK_HOSTNAME),
                         config.getInt(CK_PORT),
                         isNullOrEmpty(config.getString(CK_SERVICE_NAME)) ? config.getString(CK_HOSTNAME) : config.getString(CK_SERVICE_NAME)
                 );
                 throw new AlarmCallbackException("Unable to connect to XMPP server " + serverString, e);
-                } catch (InterruptedException e) {
-                        e.printStackTrace();
             }
         }
 
@@ -113,11 +111,7 @@ public class JabberAlarmCallback implements AlarmCallback {
         Message message = new Message(messageRecipient, messageBody);
             connection.sendStanza(message);
             connection.disconnect();
-        } catch (SmackException.NotConnectedException e) {
-            throw new AlarmCallbackException("Unable to send message", e);
-        } catch (InterruptedException e) {
-            throw new AlarmCallbackException("Unable to send message", e);
-        } catch (XmppStringprepException e) {
+        } catch (SmackException.NotConnectedException | InterruptedException | XmppStringprepException e) {
             throw new AlarmCallbackException("Unable to send message", e);
         }
     }
