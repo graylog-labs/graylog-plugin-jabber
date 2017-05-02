@@ -83,7 +83,7 @@ public class JabberAlarmCallback implements AlarmCallback {
             LOG.debug("Keystore type: {}", connectionConfiguration.getKeystoreType());
         }
 
-        final AbstractXMPPConnection xmppConnection = new XMPPConnection(connectionConfiguration);
+        final AbstractXMPPConnection xmppConnection = new XMPPTCPConnection(connectionConfiguration);
 
         xmppConnection.connect().login();
 
