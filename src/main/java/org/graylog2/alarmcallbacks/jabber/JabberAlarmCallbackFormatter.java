@@ -2,6 +2,7 @@ package org.graylog2.alarmcallbacks.jabber;
 
 import org.graylog2.plugin.alarms.AlertCondition;
 import org.graylog2.plugin.streams.Stream;
+import org.graylog2.plugin.MessageSummary;
 
 public class JabberAlarmCallbackFormatter {
     private final Stream stream;
@@ -15,11 +16,22 @@ public class JabberAlarmCallbackFormatter {
     }
 
     private String formatAlarmNotification(final Stream stream, final AlertCondition.CheckResult result) {
-        return "Graylog alert for stream <" + stream.getTitle() + ">\n\n"
-                + "Date: " + result.getTriggeredAt() + "\n"
-                + "Stream ID: " + stream.getId() + "\n"
-                + "Stream title: " + stream.getTitle() + "\n"
-                + "Triggered condition: " + result.getTriggeredCondition() + "\n";
+        String messageBacklog = "";
+	if (result.getMatchingMessages().size() == 0) {
+	    messageBacklog += "No message backlog available.\n";
+	} else {
+	    for (MessageSummary message : result.getMatchingMessages()) {
+                messageBacklog += message.getMessage() + "\n";
+            }
+        }
+        return  "\n\n"
+            + "Date: " + result.getTriggeredAt() + "\n"
+            + "Trigger: " + result.getTriggeredCondition().getTitle() + " ( " + result.getTriggeredCondition().getType() + " )" + "\n"
+            + "Stream ID: " + stream.getId() + "\n"
+            + "Stream title: " + stream.getTitle() + "\n"
+            + "Triggered condition: " + result.getTriggeredCondition() + "\n\n"
+            + "**********Message**********" + "\n"
+            + messageBacklog;
     }
 
     @Override
