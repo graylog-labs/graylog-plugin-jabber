@@ -31,7 +31,7 @@
         <maven.deploy.skip>true</maven.deploy.skip>
         <maven.site.skip>true</maven.site.skip>
         <graylog.version>2.2.0</graylog.version>
-        <smack.version>4.1.9</smack.version>
+        <smack.version>4.2.0</smack.version>
     </properties>
 
     <dependencies>
@@ -94,20 +94,6 @@
                     <transformers>
                         <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
                     </transformers>
-                    <relocations>
-                        <relocation>
-                            <pattern>org.jivesoftware.smack</pattern>
-                            <shadedPattern>org.graylog.plugins.jabber.shaded.smack</shadedPattern>
-                        </relocation>
-                        <relocation>
-                            <pattern>org.jxmpp</pattern>
-                            <shadedPattern>org.graylog.plugins.jabber.shaded.jxmpp</shadedPattern>
-                        </relocation>
-                        <relocation>
-                            <pattern>org.xmlpull</pattern>
-                            <shadedPattern>org.graylog.plugins.jabber.shaded.xmlpull</shadedPattern>
-                        </relocation>
-                    </relocations>
                 </configuration>
                 <executions>
                     <execution>
