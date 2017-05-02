@@ -14,10 +14,9 @@ import org.graylog2.plugin.configuration.fields.ConfigurationField;
 import org.graylog2.plugin.configuration.fields.NumberField;
 import org.graylog2.plugin.configuration.fields.TextField;
 import org.graylog2.plugin.streams.Stream;
-import org.jivesoftware.smack.ConnectionConfiguration;
+import org.jivesoftware.smack.AbstractXMPPConnection;
 import org.jivesoftware.smack.SASLAuthentication;
 import org.jivesoftware.smack.SmackException;
-import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
@@ -30,6 +29,8 @@ import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Map;
+import java.net.InetAddress;
+import org.jxmpp.stringprep.XmppStringprepException;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
@@ -45,7 +46,7 @@ public class JabberAlarmCallback implements AlarmCallback {
     private static final String CK_REQUIRE_SECURITY = "require_security";
     private static final String CK_RECIPIENT = "recipient";
 
-    private XMPPConnection connection;
+    private AbstractXMPPConnection connection;
     private Configuration config;
 
     @Override
@@ -53,14 +54,15 @@ public class JabberAlarmCallback implements AlarmCallback {
         this.config = config;
     }
 
-    private XMPPConnection login(final Configuration config) throws IOException, XMPPException, SmackException, KeyManagementException, NoSuchAlgorithmException {
+    private AbstractXMPPConnection login(final Configuration config) throws IOException, XMPPException, SmackException, KeyManagementException, NoSuchAlgorithmException, InterruptedException {
         final String serviceName = isNullOrEmpty(config.getString(CK_SERVICE_NAME))
                 ? config.getString(CK_HOSTNAME) : config.getString(CK_SERVICE_NAME);
 
         final XMPPTCPConnectionConfiguration.Builder configBuilder = XMPPTCPConnectionConfiguration.builder()
-                .setHost(config.getString(CK_HOSTNAME))
+                .setUsernameAndPassword(config.getString(CK_USERNAME), config.getString(CK_PASSWORD))
+                .setHostAddress(InetAddress.getByName(config.getString(CK_HOSTNAME)))
                 .setPort(config.getInt(CK_PORT))
-                .setServiceName(serviceName)
+                .setXmppDomain(serviceName)
                 .setSendPresence(false);
 
         if (config.getBoolean(CK_ACCEPT_SELFSIGNED)) {
@@ -69,7 +71,7 @@ public class JabberAlarmCallback implements AlarmCallback {
 
         final boolean requireSecurity = config.getBoolean(CK_REQUIRE_SECURITY);
         configBuilder.setSecurityMode(requireSecurity ?
-                ConnectionConfiguration.SecurityMode.required : ConnectionConfiguration.SecurityMode.ifpossible);
+                XMPPTCPConnectionConfiguration.SecurityMode.required : XMPPTCPConnectionConfiguration.SecurityMode.ifpossible);
 
         final XMPPTCPConnectionConfiguration connectionConfiguration = configBuilder.build();
         if (LOG.isDebugEnabled()) {
@@ -81,10 +83,9 @@ public class JabberAlarmCallback implements AlarmCallback {
             LOG.debug("Keystore type: {}", connectionConfiguration.getKeystoreType());
         }
 
-        final XMPPTCPConnection xmppConnection = new XMPPTCPConnection(connectionConfiguration);
+        final AbstractXMPPConnection xmppConnection = new XMPPConnection(connectionConfiguration);
 
-        xmppConnection.connect();
-        xmppConnection.login(config.getString(CK_USERNAME), config.getString(CK_PASSWORD));
+        xmppConnection.connect().login();
 
         return xmppConnection;
     }
@@ -101,15 +102,22 @@ public class JabberAlarmCallback implements AlarmCallback {
                         isNullOrEmpty(config.getString(CK_SERVICE_NAME)) ? config.getString(CK_HOSTNAME) : config.getString(CK_SERVICE_NAME)
                 );
                 throw new AlarmCallbackException("Unable to connect to XMPP server " + serverString, e);
+                } catch (InterruptedException e) {
+                        e.printStackTrace();
             }
         }
 
         String messageRecipient = config.getString(CK_RECIPIENT);
         String messageBody = new JabberAlarmCallbackFormatter(stream, result).toString();
-        Message message = new Message(messageRecipient, messageBody);
         try {
+        Message message = new Message(messageRecipient, messageBody);
             connection.sendStanza(message);
+            connection.disconnect();
         } catch (SmackException.NotConnectedException e) {
+            throw new AlarmCallbackException("Unable to send message", e);
+        } catch (InterruptedException e) {
+            throw new AlarmCallbackException("Unable to send message", e);
+        } catch (XmppStringprepException e) {
             throw new AlarmCallbackException("Unable to send message", e);
         }
     }
