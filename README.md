@@ -1,9 +1,9 @@
 XMPP / Jabber Plugin for Graylog
 ================================
 
-[![Build Status](https://travis-ci.org/Graylog2/graylog-plugin-jabber.svg?branch=master)](https://travis-ci.org/Graylog2/graylog-plugin-jabber)
-[![Github Downloads](https://img.shields.io/github/downloads/Graylog2/graylog-plugin-jabber/total.svg)](https://github.com/Graylog2/graylog-plugin-jabber/releases)
-[![GitHub Release](https://img.shields.io/github/release/Graylog2/graylog-plugin-jabber.svg)](https://github.com/Graylog2/graylog-plugin-jabber/releases)
+[![Build Status](https://travis-ci.org/graylog-labs/graylog-plugin-jabber.svg?branch=master)](https://travis-ci.org/graylog-labs/graylog-plugin-jabber)
+[![Github Downloads](https://img.shields.io/github/downloads/graylog-labs/graylog-plugin-jabber/total.svg)](https://github.com/graylog-labs/graylog-plugin-jabber/releases)
+[![GitHub Release](https://img.shields.io/github/release/graylog-labs/graylog-plugin-jabber.svg)](https://github.com/graylog-labs/graylog-plugin-jabber/releases)
 
 XMPP/Jabber Alarmcallback Plugin for Graylog.
 
@@ -11,7 +11,7 @@ XMPP/Jabber Alarmcallback Plugin for Graylog.
 
 ## Installation
 
-[Download the plugin](https://github.com/Graylog2/graylog-plugin-jabber/releases)
+[Download the plugin](https://github.com/graylog-labs/graylog-plugin-jabber/releases)
 and place the `.jar` file in your Graylog plugin directory. The plugin directory
 is the `plugins/` folder relative from your `graylog-server` directory by default
 and can be configured in your `graylog.conf` file.
