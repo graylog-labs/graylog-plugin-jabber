@@ -1,7 +1,5 @@
 package org.graylog2.alarmcallbacks.jabber;
 
-import com.google.common.collect.Maps;
-
 import org.graylog2.plugin.alarms.AlertCondition;
 import org.graylog2.plugin.alarms.callbacks.AlarmCallback;
 import org.graylog2.plugin.alarms.callbacks.AlarmCallbackConfigurationException;
@@ -14,11 +12,7 @@ import org.graylog2.plugin.configuration.fields.ConfigurationField;
 import org.graylog2.plugin.configuration.fields.NumberField;
 import org.graylog2.plugin.configuration.fields.TextField;
 import org.graylog2.plugin.streams.Stream;
-import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.SASLAuthentication;
-import org.jivesoftware.smack.SmackException;
-import org.jivesoftware.smack.XMPPConnection;
-import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
@@ -26,9 +20,7 @@ import org.jivesoftware.smack.util.TLSUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
 import java.util.Map;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -45,7 +37,7 @@ public class JabberAlarmCallback implements AlarmCallback {
     private static final String CK_REQUIRE_SECURITY = "require_security";
     private static final String CK_RECIPIENT = "recipient";
 
-    private XMPPConnection connection;
+    private XMPPTCPConnection connection;
     private Configuration config;
 
     @Override
@@ -53,14 +45,14 @@ public class JabberAlarmCallback implements AlarmCallback {
         this.config = config;
     }
 
-    private XMPPConnection login(final Configuration config) throws IOException, XMPPException, SmackException, KeyManagementException, NoSuchAlgorithmException {
+    private XMPPTCPConnection login(final Configuration config) throws Exception {
         final String serviceName = isNullOrEmpty(config.getString(CK_SERVICE_NAME))
                 ? config.getString(CK_HOSTNAME) : config.getString(CK_SERVICE_NAME);
 
         final XMPPTCPConnectionConfiguration.Builder configBuilder = XMPPTCPConnectionConfiguration.builder()
                 .setHost(config.getString(CK_HOSTNAME))
                 .setPort(config.getInt(CK_PORT))
-                .setServiceName(serviceName)
+                .setXmppDomain(serviceName)
                 .setSendPresence(false);
 
         if (config.getBoolean(CK_ACCEPT_SELFSIGNED)) {
@@ -68,8 +60,9 @@ public class JabberAlarmCallback implements AlarmCallback {
         }
 
         final boolean requireSecurity = config.getBoolean(CK_REQUIRE_SECURITY);
-        configBuilder.setSecurityMode(requireSecurity ?
-                ConnectionConfiguration.SecurityMode.required : ConnectionConfiguration.SecurityMode.ifpossible);
+        final XMPPTCPConnectionConfiguration.SecurityMode securityMode = requireSecurity ?
+                XMPPTCPConnectionConfiguration.SecurityMode.required : XMPPTCPConnectionConfiguration.SecurityMode.ifpossible;
+        configBuilder.setSecurityMode(securityMode);
 
         final XMPPTCPConnectionConfiguration connectionConfiguration = configBuilder.build();
         if (LOG.isDebugEnabled()) {
@@ -94,7 +87,7 @@ public class JabberAlarmCallback implements AlarmCallback {
         if (connection == null || !connection.isConnected() || !connection.isAuthenticated()) {
             try {
                 this.connection = login(config);
-            } catch (XMPPException | SmackException | IOException | KeyManagementException | NoSuchAlgorithmException e) {
+            } catch (Exception e) {
                 final String serverString = String.format("%s:%d (service name: %s)",
                         config.getString(CK_HOSTNAME),
                         config.getInt(CK_PORT),
@@ -106,10 +99,10 @@ public class JabberAlarmCallback implements AlarmCallback {
 
         String messageRecipient = config.getString(CK_RECIPIENT);
         String messageBody = new JabberAlarmCallbackFormatter(stream, result).toString();
-        Message message = new Message(messageRecipient, messageBody);
         try {
+            final Message message = new Message(messageRecipient, messageBody);
             connection.sendStanza(message);
-        } catch (SmackException.NotConnectedException e) {
+        } catch (Exception e) {
             throw new AlarmCallbackException("Unable to send message", e);
         }
     }
@@ -175,7 +168,9 @@ public class JabberAlarmCallback implements AlarmCallback {
 
     @Override
     public Map<String, Object> getAttributes() {
-        final Map<String, Object> attributes = Maps.newHashMap(config.getSource());
+        final Map<String, Object> source = config.getSource();
+        final Map<String, Object> attributes = source == null ? new HashMap<>() : new HashMap<>(source);
+
         LOG.debug("Attributes: {}", attributes);
 
         if (attributes.containsKey(CK_PASSWORD)) {

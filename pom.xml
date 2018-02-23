@@ -31,7 +31,7 @@
         <maven.deploy.skip>true</maven.deploy.skip>
         <maven.site.skip>true</maven.site.skip>
         <graylog.version>2.4.0</graylog.version>
-        <smack.version>4.1.9</smack.version>
+        <smack.version>4.2.3</smack.version>
     </properties>
 
     <dependencies>
