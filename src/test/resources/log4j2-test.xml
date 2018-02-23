@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+<Appenders>
+    <Console name="STDOUT" target="SYSTEM_OUT">
+        <PatternLayout pattern="%d %-5p: %c - %m%n"/>
+    </Console>
+</Appenders>
+<Loggers>
+    <Logger name="org.graylog2" level="info"/>
+    <logger name="org.testcontainers" level="info"/>
+    <logger name="org.apache.http" level="warn"/>
+    <logger name="com.github.dockerjava" level="warn"/>
+    <logger name="org.zeroturnaround.exec" level="warn"/>
+    <Root level="info">
+        <AppenderRef ref="STDOUT"/>
+    </Root>
+</Loggers>
+</Configuration>

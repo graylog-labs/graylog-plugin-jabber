@@ -1,5 +1,6 @@
 package org.graylog2.alarmcallbacks.jabber;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.graylog2.plugin.alarms.AlertCondition;
 import org.graylog2.plugin.alarms.callbacks.AlarmCallback;
 import org.graylog2.plugin.alarms.callbacks.AlarmCallbackConfigurationException;
@@ -104,6 +105,13 @@ public class JabberAlarmCallback implements AlarmCallback {
             connection.sendStanza(message);
         } catch (Exception e) {
             throw new AlarmCallbackException("Unable to send message", e);
+        }
+    }
+
+    @VisibleForTesting
+    void closeConnection() {
+        if (connection != null && connection.isConnected()) {
+            connection.instantShutdown();
         }
     }
 

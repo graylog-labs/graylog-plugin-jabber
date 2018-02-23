@@ -1,0 +1,34 @@
+[req]
+prompt = no
+distinguished_name = req_distinguished_name
+default_bits        = 2048
+default_days        = 3750
+default_md          = sha256
+x509_extensions = v3_req
+
+# Details about the issuer of the certificate
+[req_distinguished_name]
+C = US
+ST = Some-State
+L = Some-City
+O = My Company
+OU = My Division
+CN = example.net
+
+[v3_req]
+basicConstraints = CA:false
+nsCertType = server
+extendedKeyUsage = serverAuth
+nsComment = "OpenSSL Generated Server Certificate"
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid,issuer:always
+keyUsage = critical, digitalSignature, keyEncipherment, dataEncipherment
+subjectAltName = @alt_names
+
+# IP addresses and DNS names the certificate should include
+# Use IP.### for IP addresses and DNS.### for DNS names,
+# with "###" being a consecutive number.
+[alt_names]
+IP.1 = 127.0.0.1
+DNS.1 = example.net
+DNS.2 = localhost
