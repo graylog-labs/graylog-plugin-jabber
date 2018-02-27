@@ -3,6 +3,8 @@ package org.graylog2.alarmcallbacks.jabber;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.io.Resources;
+import org.graylog2.alarmcallbacks.jabber.smack.IncomingListener;
+import org.graylog2.alarmcallbacks.jabber.testcontainers.ProsodyContainer;
 import org.graylog2.alerts.AbstractAlertCondition;
 import org.graylog2.plugin.alarms.callbacks.AlarmCallbackException;
 import org.graylog2.plugin.configuration.Configuration;
@@ -20,15 +22,7 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.jxmpp.jid.EntityBareJid;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.testcontainers.containers.BindMode;
-import org.testcontainers.containers.Container;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.output.Slf4jLogConsumer;
-import org.testcontainers.containers.wait.Wait;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -59,7 +53,6 @@ public class ProsodyIntegrationTest {
         System.setProperty("javax.net.ssl.trustStore", trustStorePath.toString());
     }
 
-    private static final Logger DOCKER_LOG = LoggerFactory.getLogger("Docker");
     private static final Set<Map.Entry<String, String>> USERS = ImmutableSet.<Map.Entry<String, String>>builder()
             .add(Maps.immutableEntry("user1", "example.com"))
             .add(Maps.immutableEntry("user2", "example.com"))
@@ -71,12 +64,7 @@ public class ProsodyIntegrationTest {
     private static final String XMPP_PASSWORD = "test1234";
 
     @ClassRule
-    public static final GenericContainer PROSODY = new GenericContainer("joschi/prosody-alpine:0.10.0-1")
-            .withClasspathResourceMapping("/prosody-conf", "/etc/prosody/conf.d", BindMode.READ_ONLY)
-            .withClasspathResourceMapping("/ssl", "/etc/prosody/ssl", BindMode.READ_ONLY)
-            .withExposedPorts(5222)
-            .waitingFor(Wait.forListeningPort());
-
+    public static final ProsodyContainer PROSODY = new ProsodyContainer();
     private Map<String, Object> configSource;
     private XMPPTCPConnection xmppConnection;
     private ChatManager chatManager;
@@ -84,21 +72,11 @@ public class ProsodyIntegrationTest {
 
     @BeforeClass
     public static void initialize() throws Exception {
-        PROSODY.followOutput(new Slf4jLogConsumer(DOCKER_LOG));
-
         // Create users
-        USERS.forEach(
-                entry -> createUser(entry.getKey(), entry.getValue())
-        );
-    }
-
-    private static void createUser(String username, String domain) {
-        final Container.ExecResult createUserResult;
-        try {
-            createUserResult = PROSODY.execInContainer("prosodyctl", "register", username, domain, XMPP_PASSWORD);
-            assertTrue(createUserResult.getStderr().isEmpty());
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
+        for (Map.Entry<String, String> entry : USERS) {
+            final String username = entry.getKey();
+            final String domain = entry.getValue();
+            PROSODY.createUser(username, XMPP_PASSWORD, domain);
         }
     }
 
@@ -248,14 +226,5 @@ public class ProsodyIntegrationTest {
         TLSUtils.acceptAllCertificates(config);
 
         return new XMPPTCPConnection(config.build());
-    }
-
-    static class IncomingListener implements IncomingChatMessageListener {
-        final Map<String, Message> messages = new ConcurrentHashMap<>();
-
-        @Override
-        public void newIncomingMessage(EntityBareJid from, Message message, Chat chat) {
-            messages.put(from.asEntityBareJidString(), message);
-        }
     }
 }
