@@ -99,7 +99,7 @@ public class JabberAlarmCallback implements AlarmCallback {
         }
 
         String messageRecipient = config.getString(CK_RECIPIENT);
-        String messageBody = new JabberAlarmCallbackFormatter(stream, result).toString();
+        String messageBody = new JabberAlarmCallbackFormatter().render(stream, result);
         try {
             final Message message = new Message(messageRecipient, messageBody);
             connection.sendStanza(message);
