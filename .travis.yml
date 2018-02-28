@@ -12,6 +12,8 @@ before_deploy:
   - find . -type f -name 'original-*.jar' -delete
   - mvn jdeb:jdeb
   - mvn rpm:rpm
+script:
+  - mvn verify -B
 deploy:
   provider: releases
   api_key:
