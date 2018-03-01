@@ -14,12 +14,8 @@ import java.util.function.Consumer;
 public class GraylogContainer extends GenericContainer<GraylogContainer> {
     private static final int GRAYLOG_HTTP_PORT = 9000;
 
-    public GraylogContainer(String tag) {
-        this("graylog-plugin-jabber", tag);
-    }
-
-    public GraylogContainer(String image, String tag) {
-        super(image + ":" + tag);
+    public GraylogContainer() {
+        super("graylog-plugin-jabber:latest");
     }
 
     @Override

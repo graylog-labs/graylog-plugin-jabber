@@ -32,19 +32,16 @@ import retrofit2.converter.jackson.JacksonConverterFactory;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.jayway.awaitility.Awaitility.await;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assume.assumeFalse;
 
 public class GraylogIntegrationTest {
     @ClassRule
     public static Network NETWORK = Network.newNetwork();
 
-    private static final String GIT_SHA = System.getProperty("git.sha");
     private static final ProsodyContainer PROSODY = new ProsodyContainer().withNetwork(NETWORK);
     private static final MongoDBContainer MONGODB = new MongoDBContainer().withNetwork(NETWORK);
-    private static final GraylogContainer GRAYLOG = new GraylogContainer(GIT_SHA).withNetwork(NETWORK);
+    private static final GraylogContainer GRAYLOG = new GraylogContainer().withNetwork(NETWORK);
 
     @ClassRule
     public static final RuleChain CHAIN = RuleChain.outerRule(NETWORK)
@@ -54,8 +51,6 @@ public class GraylogIntegrationTest {
 
     @BeforeClass
     public static void initialize() throws InterruptedException {
-        assumeFalse(isNullOrEmpty(GIT_SHA));
-
         PROSODY.createUser("user1", "test1234", "example.org");
         PROSODY.createUser("user2", "test1234", "example.org");
     }
