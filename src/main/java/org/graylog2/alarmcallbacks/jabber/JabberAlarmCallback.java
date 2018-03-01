@@ -117,19 +117,19 @@ public class JabberAlarmCallback implements AlarmCallback {
         cr.addField(new TextField(CK_RECIPIENT,
                 "Recipient",
                 "user@server.org",
-                "Recipient of Jabber messages",
+                "Recipient of XMPP messages",
                 ConfigurationField.Optional.NOT_OPTIONAL));
 
         cr.addField(new TextField(CK_HOSTNAME,
                 "Hostname",
                 "localhost",
-                "Hostname of Jabber server",
+                "Hostname of XMPP server",
                 ConfigurationField.Optional.NOT_OPTIONAL));
 
         cr.addField(new NumberField(CK_PORT,
                 "Port",
                 5222,
-                "Port of Jabber server",
+                "Port of XMPP server",
                 ConfigurationField.Optional.NOT_OPTIONAL));
 
         cr.addField(new BooleanField(CK_REQUIRE_SECURITY,
@@ -145,7 +145,7 @@ public class JabberAlarmCallback implements AlarmCallback {
         cr.addField(new TextField(CK_USERNAME,
                 "Username",
                 "jabberuser",
-                "Username to connect with",
+                "Username to connect with, e. g. 'user' of the JID 'user@example.com'.",
                 ConfigurationField.Optional.NOT_OPTIONAL));
 
         cr.addField(new TextField(CK_PASSWORD,
@@ -156,9 +156,9 @@ public class JabberAlarmCallback implements AlarmCallback {
                 TextField.Attribute.IS_PASSWORD));
 
         cr.addField(new TextField(CK_SERVICE_NAME,
-                "Service Name",
+                "XMPP Domain Name",
                 "",
-                "The service name of the server (hostname used if not present)",
+                "The domain name of the server, e. g. 'example.org' of the JID 'user@example.org'. If not specified, the hostname is being used.",
                 ConfigurationField.Optional.OPTIONAL));
 
         return cr;
