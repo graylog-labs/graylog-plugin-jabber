@@ -25,13 +25,23 @@ public class GraylogContainer extends GenericContainer<GraylogContainer> {
     @Override
     protected void configure() {
         this.withLogConsumer(new Slf4jLogConsumer(LoggerFactory.getLogger("Graylog")))
-                .withCreateContainerCmdModifier((Consumer<CreateContainerCmd>) cmd -> cmd.withMemory(Size.gigabytes(1L).toBytes()))
+                .withCreateContainerCmdModifier((Consumer<CreateContainerCmd>) cmd -> cmd.withMemory(Size.megabytes(512L).toBytes()))
+                .withEnv("GRAYLOG_SERVER_JAVA_OPTS", "-server -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=2")
                 .withEnv("GRAYLOG_PASSWORD_SECRET", "supersecretpasswordpepper")
                 .withEnv("GRAYLOG_ROOT_USERNAME", "admin")
                 .withEnv("GRAYLOG_ROOT_PASSWORD_SHA2", "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918")
-                .withEnv("GRAYLOG_WEB_ENDPOINT_URI", "http://127.0.0.1:9000/api")
                 .withEnv("GRAYLOG_MESSAGE_JOURNAL_ENABLED", "false")
                 .withEnv("GRAYLOG_DEFAULT_MESSAGE_OUTPUT_CLASS", "org.graylog2.outputs.DiscardMessageOutput")
+                // Try to reduce Graylog's resource consumption as much as possible
+                .withEnv("GRAYLOG_WEB_ENABLE", "false")
+                .withEnv("GRAYLOG_DISABLE_SIGAR", "true")
+                .withEnv("GRAYLOG_INPUTBUFFER_PROCESSORS", "1")
+                .withEnv("GRAYLOG_PROCESSBUFFER_PROCESSORS", "1")
+                .withEnv("GRAYLOG_OUTPUTBUFFER_PROCESSORS", "1")
+                .withEnv("GRAYLOG_RING_SIZE", "2")
+                .withEnv("GRAYLOG_INPUTBUFFER_RING_SIZE", "2")
+                .withEnv("GRAYLOG_CONTENT_PACKS_LOADER_ENABLED", "false")
+                .withEnv("GRAYLOG_PROXIED_REQUESTS_THREAD_POOL_SIZE", "2")
                 .withExposedPorts(GRAYLOG_HTTP_PORT)
                 .withNetworkAliases("graylog")
                 .waitingFor(Wait.forListeningPort().withStartupTimeout(Duration.ofMinutes(5L)));
