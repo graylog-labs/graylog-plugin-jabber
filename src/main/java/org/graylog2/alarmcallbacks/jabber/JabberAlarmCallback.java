@@ -1,6 +1,5 @@
 package org.graylog2.alarmcallbacks.jabber;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.graylog2.plugin.alarms.AlertCondition;
 import org.graylog2.plugin.alarms.callbacks.AlarmCallback;
 import org.graylog2.plugin.alarms.callbacks.AlarmCallbackConfigurationException;
@@ -18,6 +17,7 @@ import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.jivesoftware.smack.util.TLSUtils;
+import org.jxmpp.jid.parts.Resourcepart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +38,6 @@ public class JabberAlarmCallback implements AlarmCallback {
     private static final String CK_REQUIRE_SECURITY = "require_security";
     private static final String CK_RECIPIENT = "recipient";
 
-    private XMPPTCPConnection connection;
     private Configuration config;
 
     @Override
@@ -53,6 +52,7 @@ public class JabberAlarmCallback implements AlarmCallback {
         final XMPPTCPConnectionConfiguration.Builder configBuilder = XMPPTCPConnectionConfiguration.builder()
                 .setHost(config.getString(CK_HOSTNAME))
                 .setPort(config.getInt(CK_PORT))
+                .setUsernameAndPassword(config.getString(CK_USERNAME), config.getString(CK_PASSWORD))
                 .setXmppDomain(serviceName)
                 .setSendPresence(false);
 
@@ -78,40 +78,34 @@ public class JabberAlarmCallback implements AlarmCallback {
         final XMPPTCPConnection xmppConnection = new XMPPTCPConnection(connectionConfiguration);
 
         xmppConnection.connect();
-        xmppConnection.login(config.getString(CK_USERNAME), config.getString(CK_PASSWORD));
+        xmppConnection.login();
 
         return xmppConnection;
     }
 
     @Override
     public void call(final Stream stream, final AlertCondition.CheckResult result) throws AlarmCallbackException {
-        if (connection == null || !connection.isConnected() || !connection.isAuthenticated()) {
-            try {
-                this.connection = login(config);
-            } catch (Exception e) {
-                final String serverString = String.format("%s:%d (service name: %s)",
-                        config.getString(CK_HOSTNAME),
-                        config.getInt(CK_PORT),
-                        isNullOrEmpty(config.getString(CK_SERVICE_NAME)) ? config.getString(CK_HOSTNAME) : config.getString(CK_SERVICE_NAME)
-                );
-                throw new AlarmCallbackException("Unable to connect to XMPP server " + serverString, e);
-            }
+        final XMPPTCPConnection connection;
+        try {
+            connection = login(config);
+        } catch (Exception e) {
+            final String serverString = String.format("%s:%d (service name: %s)",
+                    config.getString(CK_HOSTNAME),
+                    config.getInt(CK_PORT),
+                    isNullOrEmpty(config.getString(CK_SERVICE_NAME)) ? config.getString(CK_HOSTNAME) : config.getString(CK_SERVICE_NAME)
+            );
+            throw new AlarmCallbackException("Unable to connect to XMPP server " + serverString, e);
         }
 
-        String messageRecipient = config.getString(CK_RECIPIENT);
-        String messageBody = new JabberAlarmCallbackFormatter().render(stream, result);
+        final String messageRecipient = config.getString(CK_RECIPIENT);
+        final String messageBody = new JabberAlarmCallbackFormatter().render(stream, result);
         try {
             final Message message = new Message(messageRecipient, messageBody);
             connection.sendStanza(message);
         } catch (Exception e) {
             throw new AlarmCallbackException("Unable to send message", e);
-        }
-    }
-
-    @VisibleForTesting
-    void closeConnection() {
-        if (connection != null && connection.isConnected()) {
-            connection.instantShutdown();
+        } finally {
+            connection.disconnect();
         }
     }
 

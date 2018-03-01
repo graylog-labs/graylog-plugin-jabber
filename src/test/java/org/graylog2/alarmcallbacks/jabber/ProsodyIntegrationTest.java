@@ -9,10 +9,7 @@ import org.graylog2.alerts.AbstractAlertCondition;
 import org.graylog2.plugin.alarms.callbacks.AlarmCallbackException;
 import org.graylog2.plugin.configuration.Configuration;
 import org.graylog2.plugin.streams.Stream;
-import org.jivesoftware.smack.chat2.Chat;
 import org.jivesoftware.smack.chat2.ChatManager;
-import org.jivesoftware.smack.chat2.IncomingChatMessageListener;
-import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.jivesoftware.smack.util.TLSUtils;
@@ -21,7 +18,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
-import org.jxmpp.jid.EntityBareJid;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -31,7 +27,6 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static com.jayway.awaitility.Awaitility.await;
 import static org.junit.Assert.assertEquals;
@@ -91,11 +86,8 @@ public class ProsodyIntegrationTest {
 
     @After
     public void tearDown() {
-        if (callback != null) {
-            callback.closeConnection();
-        }
         if (xmppConnection != null && xmppConnection.isConnected()) {
-            xmppConnection.instantShutdown();
+            xmppConnection.disconnect();
         }
     }
 

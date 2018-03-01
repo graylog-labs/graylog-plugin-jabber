@@ -158,7 +158,7 @@ public class GraylogIntegrationTest {
                             "Triggered condition: ")
                     .endsWith("No message backlog available.");
         } finally {
-            xmppConnection.instantShutdown();
+            xmppConnection.disconnect();
         }
     }
 
