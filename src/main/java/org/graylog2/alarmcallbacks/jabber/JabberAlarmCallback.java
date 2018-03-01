@@ -54,6 +54,7 @@ public class JabberAlarmCallback implements AlarmCallback {
                 .setPort(config.getInt(CK_PORT))
                 .setUsernameAndPassword(config.getString(CK_USERNAME), config.getString(CK_PASSWORD))
                 .setXmppDomain(serviceName)
+                .setResource(Resourcepart.from("graylog"))
                 .setSendPresence(false);
 
         if (config.getBoolean(CK_ACCEPT_SELFSIGNED)) {
