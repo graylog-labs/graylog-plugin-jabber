@@ -25,7 +25,7 @@ before_deploy:
 deploy:
   provider: releases
   api_key:
-    secure: "VdEpe+MKiAzmk8LkNKrgvWZYwC+82gnZD0djSnnxXk3SLKyinFCijP/gEt85D17I80fA/zMm3hVN3A7jkYPzeoqHvLNwphWL6ImFg5+vvGqfgj43P6B7DaOM3KP4rFIXKRoyNEOQAlCN7mj5yGOFcHItC2R0TRq/A3zDpLvH83w="
+    secure: "I1kEu8TuMViRIs3r7CJMxdg9MvX6NGBjub57ZgojvBtscHbsHXguB3mM9Zngl2qyw+Hjyd//Djrh5x+rEMUs7cdMF8ITI+zwLUW27Tu3WHwi3cGEjcodPKdaboEpCue/p5cVtuyV5mXpeY0WMb0QkLtIotp6wWUS5NMLI1RN3YQ="
   file_glob: true
   file:
     - "**/target/*.jar"
