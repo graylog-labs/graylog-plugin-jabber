@@ -16,7 +16,7 @@ public class MongoDBContainer extends GenericContainer<MongoDBContainer> {
     @Override
     protected void configure() {
         this.withLogConsumer(new Slf4jLogConsumer(LoggerFactory.getLogger("MongoDB")))
-                .withCreateContainerCmdModifier((Consumer<CreateContainerCmd>) cmd -> cmd.withMemory(Size.megabytes(64L).toBytes()))
+                .withCreateContainerCmdModifier((Consumer<CreateContainerCmd>) cmd -> cmd.withMemory(Size.megabytes(128L).toBytes()))
                 .withNetworkAliases("mongo");
     }
 }

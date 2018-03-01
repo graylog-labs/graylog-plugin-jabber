@@ -21,7 +21,7 @@ public class GraylogContainer extends GenericContainer<GraylogContainer> {
     @Override
     protected void configure() {
         this.withLogConsumer(new Slf4jLogConsumer(LoggerFactory.getLogger("Graylog")))
-                .withCreateContainerCmdModifier((Consumer<CreateContainerCmd>) cmd -> cmd.withMemory(Size.megabytes(512L).toBytes()))
+                .withCreateContainerCmdModifier((Consumer<CreateContainerCmd>) cmd -> cmd.withMemory(Size.megabytes(1024L).toBytes()))
                 .withEnv("GRAYLOG_SERVER_JAVA_OPTS", "-server -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=2")
                 .withEnv("GRAYLOG_PASSWORD_SECRET", "supersecretpasswordpepper")
                 .withEnv("GRAYLOG_ROOT_USERNAME", "admin")
